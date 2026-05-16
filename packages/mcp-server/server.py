@@ -216,7 +216,7 @@ def find_cross_layer_match(
             mut_file = mutation.get("file", "")
             mut_line = mutation.get("line", 0)
             
-            if not mut_id or not mut_file or not mut_line:
+            if not mut_id or not mut_file or mut_line is None:
                 continue
             
             for incident in incidents:
