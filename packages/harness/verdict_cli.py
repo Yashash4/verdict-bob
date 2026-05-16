@@ -63,10 +63,10 @@ def format_text_output(results: Dict[str, Any]) -> str:
     
     # Map layers to their specific output keys
     layer_keys = {
-        "semantic": ["invariants_changed", "contracts_changed"],
-        "blast": ["direct_callers"],
-        "mutation": ["survivors"],
-        "incident": ["incidents"],
+        "semantic": ["findings"],
+        "blast": ["findings"],
+        "mutation": ["findings"],
+        "incident": ["findings"],
         "questions": ["findings"]
     }
     

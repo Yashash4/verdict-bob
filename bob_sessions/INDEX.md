@@ -11,10 +11,9 @@ Every session below is an exported Bob task history showing meaningful Bob usage
 | 00-planning | Plan mode | Bob architected Verdict before we wrote code |
 | 01-init | /init slash command | Bob generated AGENTS.md for the project |
 | 02-mcp-server | Code mode + Advanced mode | Bob built verdict-tools MCP server (3 tools), pipeline harness, CLI, and MCP config |
-| 03-layer1-build | Ask mode + semantic-diff skill | Bob built the semantic diff layer |
-| 04-layer4-build | Ask mode + incident-mining skill + MCP | Bob mines git history for incidents |
-| 05-layer6-synthesis | Orchestrator mode + pr-synthesis skill | Bob produces the killer-line synthesis |
-| 06-self-review | /review slash command | Bob reviewed Verdict's own codebase |
+| 03-harness-hardening | Code mode | Bob hardened the pipeline — robust JSON parsing, deterministic cross-layer matching, retry logic |
+| 04-live-analysis | Custom modes (all 6) | Bob ran full 6-layer analysis on a real PR and produced the killer line |
+| 05-self-review | /review slash command | Bob reviewed Verdict's own codebase |
 
 ## Account B Sessions
 

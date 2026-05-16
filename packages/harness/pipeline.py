@@ -125,10 +125,12 @@ Output JSON:
         
         "synthesis": """Synthesize all 5 layers into ONE GitHub comment.
 
-CRITICAL: Before writing, use find_cross_layer_match MCP tool to check if any mutation
-targets the same file and line range (±5) as a past incident.
-If match found, TL;DR sentence 1 MUST be:
-"Surviving mutation [ID] is the same code path that caused [INC-ID]"
+Pre-computed cross-layer matches:
+{cross_layer_matches}
+
+RULE: If cross_layer_matches is non-empty, TL;DR sentence 1 MUST be
+the exact `killer_line` string from cross_layer_matches[0].
+Copy it verbatim. Do not paraphrase. Do not omit.
 
 All layer outputs:
 {all_layers}
@@ -191,6 +193,73 @@ Output JSON:
         if not os.environ.get("BOBSHELL_API_KEY"):
             print("Warning: BOBSHELL_API_KEY not set", file=sys.stderr)
     
+    def _extract_json(self, text: str) -> Optional[Dict[str, Any]]:
+        """
+        Extract JSON from text using multiple strategies.
+        
+        Args:
+            text: Text that may contain JSON
+            
+        Returns:
+            Parsed JSON dict or None if extraction fails
+        """
+        # Strategy 1: Check for ```json markdown block
+        if "```json" in text:
+            json_start = text.find("```json") + 7
+            json_end = text.find("```", json_start)
+            if json_end != -1:
+                try:
+                    return json.loads(text[json_start:json_end].strip())
+                except json.JSONDecodeError:
+                    pass
+        
+        # Strategy 2: Check for ``` markdown block
+        if "```" in text:
+            json_start = text.find("```") + 3
+            json_end = text.find("```", json_start)
+            if json_end != -1:
+                try:
+                    return json.loads(text[json_start:json_end].strip())
+                except json.JSONDecodeError:
+                    pass
+        
+        # Strategy 3: Brace matching - find first { and its matching }
+        first_brace = text.find("{")
+        if first_brace != -1:
+            depth = 0
+            in_string = False
+            escape_next = False
+            
+            for i in range(first_brace, len(text)):
+                char = text[i]
+                
+                if escape_next:
+                    escape_next = False
+                    continue
+                
+                if char == '\\':
+                    escape_next = True
+                    continue
+                
+                if char == '"' and not escape_next:
+                    in_string = not in_string
+                    continue
+                
+                if not in_string:
+                    if char == '{':
+                        depth += 1
+                    elif char == '}':
+                        depth -= 1
+                        if depth == 0:
+                            # Found matching brace
+                            try:
+                                return json.loads(text[first_brace:i+1])
+                            except json.JSONDecodeError:
+                                pass
+                            break
+        
+        return None
+    
     def _call_bob_shell(self, prompt: str, timeout: int = 120) -> Optional[Dict[str, Any]]:
         """
         Call Bob Shell with a prompt.
@@ -223,28 +292,18 @@ Output JSON:
                 print(f"stderr: {result.stderr}", file=sys.stderr)
                 return None
             
-            # Try to parse JSON from output
+            # Try to parse JSON from output using robust extraction
             raw_output = result.stdout.strip()
-            output = raw_output
+            result_json = self._extract_json(raw_output)
             
-            # Bob might wrap JSON in markdown code blocks
-            if "```json" in output:
-                json_start = output.find("```json") + 7
-                json_end = output.find("```", json_start)
-                output = output[json_start:json_end].strip()
-            elif "```" in output:
-                json_start = output.find("```") + 3
-                json_end = output.find("```", json_start)
-                output = output[json_start:json_end].strip()
+            if result_json is None:
+                print(f"Failed to extract JSON from Bob Shell output", file=sys.stderr)
+                print(f"Output was: {raw_output[:500]}", file=sys.stderr)
             
-            return json.loads(output)
+            return result_json
         
         except subprocess.TimeoutExpired:
             print(f"Bob Shell timed out after {timeout}s", file=sys.stderr)
-            return None
-        except json.JSONDecodeError as e:
-            print(f"Failed to parse Bob Shell output as JSON: {e}", file=sys.stderr)
-            print(f"Output was: {raw_output[:500]}", file=sys.stderr)
             return None
         except Exception as e:
             print(f"Error calling Bob Shell: {e}", file=sys.stderr)
@@ -266,20 +325,31 @@ Output JSON:
             prompt_template = self.LAYER_PROMPTS[layer]
             
             if layer == "semantic":
-                prompt = prompt_template.format(diff_content=self.diff_content)
+                prompt = prompt_template.replace("{diff_content}", self.diff_content)
             elif layer == "synthesis":
-                # Synthesis needs ALL layer outputs, not just the previous one
+                # Pre-compute cross-layer matches before synthesis
+                self._compute_cross_layer_matches()
+                
+                # Synthesis needs ALL layer outputs plus pre-computed matches
                 all_layers_json = json.dumps(self.results, indent=2)
-                prompt = prompt_template.format(all_layers=all_layers_json)
+                cross_layer_matches_json = json.dumps(
+                    self.results.get("cross_layer_matches", []),
+                    indent=2
+                )
+                prompt = prompt_template.replace("{cross_layer_matches}", cross_layer_matches_json).replace("{all_layers}", all_layers_json)
             else:
-                prompt = prompt_template.format(previous_output=previous_output)
+                prompt = prompt_template.replace("{previous_output}", previous_output)
             
-            # Call Bob Shell
+            # Call Bob Shell with retry on failure
             result = self._call_bob_shell(prompt)
             
             if result is None:
-                print(f"Warning: Layer {layer} failed, continuing with empty result", file=sys.stderr)
-                result = {}
+                print(f"Layer {layer} failed, retrying once...", file=sys.stderr)
+                result = self._call_bob_shell(prompt)
+                
+                if result is None:
+                    print(f"Warning: Layer {layer} failed after retry, continuing with empty result", file=sys.stderr)
+                    result = {}
             
             # Store result
             self.results[layer] = result
@@ -288,6 +358,46 @@ Output JSON:
             previous_output = json.dumps(result, indent=2)
         
         return self.results
+    
+    def _compute_cross_layer_matches(self):
+        """
+        Pre-compute cross-layer matches between mutations and incidents.
+        This ensures the killer line is reliably generated before synthesis.
+        """
+        try:
+            # Import the MCP tool directly
+            mcp_server_path = os.path.join(os.path.dirname(__file__), '..', 'mcp-server')
+            if mcp_server_path not in sys.path:
+                sys.path.insert(0, mcp_server_path)
+            
+            from server import find_cross_layer_match  # type: ignore
+            
+            # Extract mutations from mutation layer
+            mutation_data = self.results.get("mutation", {})
+            mutations = (
+                mutation_data.get("next_mode_input", {}).get("survivors", []) or
+                mutation_data.get("findings", [])
+            )
+            
+            # Extract incidents from incident layer
+            incident_data = self.results.get("incident", {})
+            incidents = (
+                incident_data.get("next_mode_input", {}).get("incidents", []) or
+                incident_data.get("findings", [])
+            )
+            
+            # Call the MCP tool directly
+            if mutations and incidents:
+                matches = find_cross_layer_match(mutations, incidents)
+                self.results["cross_layer_matches"] = matches
+                print(f"Found {len(matches)} cross-layer matches", file=sys.stderr)
+            else:
+                self.results["cross_layer_matches"] = []
+                print("No mutations or incidents to match", file=sys.stderr)
+        
+        except Exception as e:
+            print(f"Error computing cross-layer matches: {e}", file=sys.stderr)
+            self.results["cross_layer_matches"] = []
 
 
 def run_pipeline(repo_path: str, diff_content: str, output_format: str = "json") -> Dict[str, Any]:
