@@ -10,7 +10,6 @@ import json
 import sys
 import os
 from typing import Dict, Any, Optional
-from datetime import datetime
 
 
 class VerdictPipeline:

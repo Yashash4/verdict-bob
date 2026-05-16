@@ -61,11 +61,25 @@ def format_text_output(results: Dict[str, Any]) -> str:
     output.append("LAYER SUMMARY")
     output.append("-" * 80)
     
+    # Map layers to their specific output keys
+    layer_keys = {
+        "semantic": ["invariants_changed", "contracts_changed"],
+        "blast": ["direct_callers"],
+        "mutation": ["survivors"],
+        "incident": ["incidents"],
+        "questions": ["findings"]
+    }
+    
     for layer in ["semantic", "blast", "mutation", "incident", "questions"]:
         layer_data = results.get(layer, {})
         if layer_data:
-            findings_count = len(layer_data.get("findings", []))
-            output.append(f"✓ {layer.upper()}: {findings_count} findings")
+            # Count items from the appropriate keys for this layer
+            count = 0
+            for key in layer_keys[layer]:
+                items = layer_data.get(key, [])
+                if isinstance(items, list):
+                    count += len(items)
+            output.append(f"✓ {layer.upper()}: {count} findings")
         else:
             output.append(f"✗ {layer.upper()}: No output")
     

@@ -4,7 +4,16 @@ This file provides guidance to agents when working with code in this repository.
 
 ## Project Type
 
-This is a **Bob AI configuration project** for the "Verdict" PR analysis system. It contains custom modes, skills, commands, and rules - NOT application source code. There is no build process, no tests, and no runtime execution.
+This is a **Bob AI configuration project** for the "Verdict" PR analysis system. It contains custom modes, skills, commands, and rules, plus runtime components in `packages/`:
+
+- **packages/mcp-server/server.py** - MCP server providing 3 tools:
+  - `get_git_history` - Retrieves git commit history for a file
+  - `find_incident_commits` - Mines INCIDENTS.md and git log for past incidents
+  - `find_cross_layer_match` - Matches mutations to incidents by file/line overlap
+- **packages/harness/pipeline.py** - Python orchestrator that calls Bob Shell sequentially for all 6 layers
+- **packages/harness/verdict_cli.py** - CLI entry point with argparse interface
+
+The `.bob/` directory contains Bob configuration (modes, skills, rules). The `packages/` directory contains executable Python code.
 
 ## Verdict Pipeline Architecture
 
@@ -31,12 +40,13 @@ This is the highest-value output Verdict produces. No diff-bound tool can achiev
 
 ## MCP Tool Dependencies
 
-Verdict requires these **external MCP tools** to be available:
+Verdict requires these **MCP tools**:
 
 - `find_cross_layer_match` - Matches mutations to incidents by file/line overlap
 - `find_incident_commits` - Mines git history for incident patterns
+- `get_git_history` - Retrieves commit history for a file
 
-These tools are NOT part of this config project - they must be provided by the MCP server.
+These tools are provided by `packages/mcp-server/server.py` in this project. The MCP server is configured in `.bob/mcp.json`.
 
 ## JSON Output Format
 
