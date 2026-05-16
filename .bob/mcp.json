@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "verdict-tools": {
+      "command": "python",
+      "args": ["packages/mcp-server/server.py"]
+    },
+    "mutmut": {
+      "command": "uvx",
+      "args": ["mutmut-mcp"]
+    }
+  }
+}
