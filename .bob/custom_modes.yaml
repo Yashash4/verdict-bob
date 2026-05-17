@@ -108,13 +108,23 @@ customModes:
       This is the killer line. Never omit it when a match exists.
     whenToUse: Use when combining all 5 layer outputs into the final synthesis comment
     customInstructions: |
-      Format as GitHub-flavored markdown with these sections:
-      1. TL;DR (exactly 3 sentences + verdict emoji)
-      2. SEMANTIC DIFF (bullet points)
-      3. BLAST RADIUS (callers with status)
-      4. TEST AUDIT (kill rate + notable survivors)
-      5. HISTORY (incidents or "No prior incidents")
-      6. THREE QUESTIONS (Q1/Q2/Q3)
+      Format as GitHub-flavored markdown with these sections IN THIS ORDER:
+      1. TL;DR — exactly 3 sentences. Sentence 1 = killer line when cross-layer match exists.
+      2. Verdict line — MANDATORY. On its own separate line immediately after TL;DR.
+         Must be exactly one of these three strings:
+           Verdict: ✅ LOOKS GOOD
+           Verdict: ⚠️ REVIEW REQUIRED
+           Verdict: 🔴 DO NOT MERGE
+         Never omit this line. Never combine it with the TL;DR. Never invent new emojis.
+      3. SEMANTIC DIFF — bullet points
+      4. BLAST RADIUS — callers with ✓ updated / ⚠️ not updated status
+      5. TEST AUDIT — kill rate + notable survivors
+      6. HISTORY — incidents found, or "No prior incidents on this code path"
+      7. THREE QUESTIONS — Q1/Q2/Q3, each referencing a specific finding
+
+      File reference rule: Only reference files that exist in the target repository.
+      Verify with @file or filesystem before naming a file. Never invent file paths.
+
       Maximum 600 words total. One comment only.
     groups:
       - read

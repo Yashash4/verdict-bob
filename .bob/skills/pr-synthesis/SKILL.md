@@ -54,3 +54,7 @@ Q3. [third question]
 - Questions: exactly 3. No style questions.
 - Maximum 600 words total.
 - Never add inline nit comments.
+- Verdict line is MANDATORY. Must appear on its own line right after TL;DR.
+  Exactly one of: "Verdict: ✅ LOOKS GOOD" / "Verdict: ⚠️ REVIEW REQUIRED" / "Verdict: 🔴 DO NOT MERGE"
+- Only reference files that exist in the target repository. Verify with @file
+  before including a path. Never invent file names or paths.

@@ -19,3 +19,22 @@ This is the highest-value output Verdict produces. No diff-bound tool can produc
 - Always reference files with @path/to/file syntax
 - Use structured JSON output between layers
 - Each layer feeds the next — don't skip layers
+
+
+## File Reference Rule
+Only reference files that actually exist in the target repository being analyzed.
+Before including any file path in any output (synthesis comment, intermediate JSON,
+reviewer questions), verify the file exists using @file references or by reading
+the filesystem. Never invent or hallucinate file names. If unsure, omit the file
+reference rather than guessing.
+
+## Verdict Line Rule
+Every synthesis comment MUST include a "Verdict:" line on its own line, placed
+immediately after the TL;DR and before any numbered section. The line must be
+exactly one of these three strings, no variations:
+- Verdict: ✅ LOOKS GOOD
+- Verdict: ⚠️ REVIEW REQUIRED
+- Verdict: 🔴 DO NOT MERGE
+
+This is non-negotiable. Hackathon judges scan for this signal first when reading
+the synthesis output. Omitting it makes the artifact look unfinished.
