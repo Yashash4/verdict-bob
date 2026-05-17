@@ -4,12 +4,14 @@
 
 **A pre-merge review tool that refuses to let history repeat itself.**
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-verdict--bob.vercel.app-ff3b47?style=for-the-badge)](https://verdict-bob.vercel.app/)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Built on IBM Bob](https://img.shields.io/badge/Built%20on-IBM%20Bob-6a5fc1)](https://lablab.ai/event/ibm-bob-hackathon)
 [![Hackathon 2026](https://img.shields.io/badge/IBM%20Bob%20Hackathon-2026-4ade80)](https://lablab.ai/event/ibm-bob-hackathon)
 [![PRs: Verdict-reviewed](https://img.shields.io/badge/PRs-Verdict--reviewed-ff3b47)](demo/hero-pr-result.md)
 
-[**Demo →**](demo/hero-pr-result.md) · [**Killer Line →**](KILLER_LINE.md) · [**Architecture →**](#architecture) · [**Sessions →**](bob_sessions/INDEX.md)
+[**Live Dashboard →**](https://verdict-bob.vercel.app/) · [**Run the Demo →**](https://verdict-bob.vercel.app/analyze) · [**Killer Line →**](KILLER_LINE.md) · [**Architecture →**](#architecture) · [**Sessions →**](bob_sessions/INDEX.md)
 
 </div>
 
@@ -223,6 +225,10 @@ The right-most column is the one that fires the killer line. Nobody else has it.
 
 ## Live demo
 
+> 🔴 **Live dashboard:** [**verdict-bob.vercel.app**](https://verdict-bob.vercel.app/)
+>
+> Four pages — landing with auto-playing pipeline terminal, full analyze flow, architecture deep-dive, and Bob session timeline. Click [**Run the demo**](https://verdict-bob.vercel.app/analyze) to watch the killer line fire.
+
 The demo runs the full pipeline on a deliberately engineered PR that hides a race condition behind a "performance improvement":
 
 **Hero PR:** [Yashash4/fastapi-tokenauth#1](https://github.com/Yashash4/fastapi-tokenauth/pull/1) — *"feat: add token verification cache for performance"*
@@ -234,6 +240,15 @@ The demo runs the full pipeline on a deliberately engineered PR that hides a rac
 The full Verdict synthesis on this PR: [`demo/hero-pr-result.md`](demo/hero-pr-result.md)
 
 The dashboard renders this exact output with the killer line as the visual hero.
+
+### Dashboard pages
+
+| Page | URL | What's there |
+|---|---|---|
+| Landing | [verdict-bob.vercel.app](https://verdict-bob.vercel.app/) | Hero with live auto-playing pipeline terminal, killer-line preview, architecture overview, sessions timeline, why-this-matters story |
+| Analyze | [verdict-bob.vercel.app/analyze](https://verdict-bob.vercel.app/analyze) | Locked demo URL, layer-by-layer pipeline simulation, full synthesis output with killer line glowing red |
+| Pipeline | [verdict-bob.vercel.app/pipeline](https://verdict-bob.vercel.app/pipeline) | 6-layer architecture deep-dive with JSON output schemas, 3 MCP tool signatures, `.bob/mcp.json` config |
+| Sessions | [verdict-bob.vercel.app/sessions](https://verdict-bob.vercel.app/sessions) | 7 exported Bob sessions, each linked to GitHub. Bob feature surface area at a glance |
 
 ---
 
@@ -289,6 +304,8 @@ npm install
 npm run dev
 # open http://localhost:3000
 ```
+
+> Don't want to run it? The live deployment is at [**verdict-bob.vercel.app**](https://verdict-bob.vercel.app/).
 
 ---
 
@@ -367,6 +384,7 @@ verdict-bob/
 | **Event** | [IBM Bob Hackathon 2026](https://lablab.ai/event/ibm-bob-hackathon) |
 | **Theme** | Turn idea into impact faster |
 | **Deadline** | May 17, 2026 — 8:30 PM IST |
+| **Live dashboard** | [verdict-bob.vercel.app](https://verdict-bob.vercel.app/) |
 | **GitHub** | [github.com/Yashash4/verdict-bob](https://github.com/Yashash4/verdict-bob) |
 | **Demo target** | [github.com/Yashash4/fastapi-tokenauth](https://github.com/Yashash4/fastapi-tokenauth) |
 | **Hero PR** | [PR #1 — feat: add token verification cache for performance](https://github.com/Yashash4/fastapi-tokenauth/pull/1) |
