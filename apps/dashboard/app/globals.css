@@ -7,6 +7,30 @@ body {
   background: theme('colors.canvas');
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(106, 95, 193, 0.15), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 80% 10%, rgba(255, 59, 71, 0.06), transparent 60%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
 }
 
-/* Made with Bob */
+::selection {
+  background: rgba(106, 95, 193, 0.4);
+  color: theme('colors.ink.DEFAULT');
+}
+
+.terminal-grid {
+  background-image:
+    linear-gradient(rgba(106, 95, 193, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(106, 95, 193, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
