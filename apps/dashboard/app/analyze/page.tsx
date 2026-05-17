@@ -3,14 +3,14 @@
 import { useState } from "react";
 import KillerLineCallout from "@/components/KillerLineCallout";
 import VerdictBanner from "@/components/VerdictBanner";
-import ConfidenceMeter from "@/components/ConfidenceMeter";
+import LayerSimulation from "@/components/LayerSimulation";
 
-// Hardcoded analysis data from demo/hero-pr-result.md
+const VALID_PR_URL = "https://github.com/Yashash4/fastapi-tokenauth/pull/1";
+
 const ANALYSIS_DATA = {
-  prUrl: "https://github.com/Yashash4/fastapi-tokenauth/pull/1",
   killerLine: "Surviving mutation M-1 is the same code path that caused INC-2024-0431",
   verdict: "DO NOT MERGE" as const,
-  tldr: "Surviving mutation M-1 is the same code path that caused INC-2024-0431. This PR introduces verify_token_cached() with a 300-second TTL cache but no invalidation mechanism, amplifying the existing race condition from milliseconds to 5 minutes. Revoked tokens remain valid in cache for up to 300 seconds, creating a critical security gap across 3 production endpoints.",
+  tldr: "This PR introduces verify_token_cached() with a 300-second TTL cache but no invalidation mechanism, amplifying the existing race condition from milliseconds to 5 minutes. Revoked tokens remain valid in cache for up to 300 seconds, creating a critical security gap across 3 production endpoints.",
   sections: [
     {
       title: "1. SEMANTIC DIFF",
@@ -69,81 +69,111 @@ const ANALYSIS_DATA = {
 };
 
 export default function AnalyzePage() {
-  const [prUrl, setPrUrl] = useState(ANALYSIS_DATA.prUrl);
+  const [prUrl, setPrUrl] = useState(VALID_PR_URL);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [showError, setShowError] = useState(false);
 
   const handleAnalyze = () => {
+    setShowError(false);
+    
+    if (prUrl !== VALID_PR_URL) {
+      setShowError(true);
+      return;
+    }
+
     setIsAnalyzing(true);
     setShowResults(false);
-    
-    // Show results after 3 seconds (animation duration)
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      setShowResults(true);
-    }, 3000);
+  };
+
+  const handleSimulationComplete = () => {
+    setIsAnalyzing(false);
+    setShowResults(true);
+  };
+
+  const loadDemoUrl = () => {
+    setPrUrl(VALID_PR_URL);
+    setShowError(false);
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 p-8">
-      <div className="max-w-5xl mx-auto space-y-8">
+    <main className="bg-canvas min-h-screen py-64">
+      <div className="max-w-[1152px] mx-auto px-32 space-y-48">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-slate-100">Verdict Analysis</h1>
-          <p className="text-slate-400">CodeRabbit reviews the diff. Verdict reviews the decision.</p>
+        <div className="space-y-16">
+          <h1 className="text-display-md text-ink">Analyze PR</h1>
+          <p className="text-body text-ink-muted max-w-[640px]">
+            Enter a pull request URL to run Verdict's 6-layer analysis pipeline.
+          </p>
         </div>
 
-        {/* PR URL Input */}
+        {/* Input Section */}
         {!isAnalyzing && !showResults && (
-          <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-8 space-y-4">
-            <label className="block text-sm font-semibold text-slate-300">
-              Pull Request URL
-            </label>
-            <input
-              type="text"
-              value={prUrl}
-              onChange={(e) => setPrUrl(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-red-600 transition-colors"
-              placeholder="https://github.com/owner/repo/pull/123"
-            />
-            <button
-              onClick={handleAnalyze}
-              className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
-            >
-              Analyze PR
-            </button>
+          <div className="space-y-24">
+            <div className="flex gap-12">
+              <input
+                type="text"
+                value={prUrl}
+                onChange={(e) => setPrUrl(e.target.value)}
+                className="flex-1 px-16 py-12 bg-surface-1 border border-hairline rounded-8 text-body text-ink placeholder:text-ink-subtle focus:outline-none focus:border-accent transition-colors"
+                placeholder="https://github.com/owner/repo/pull/123"
+              />
+              <button
+                onClick={handleAnalyze}
+                className="px-24 py-12 bg-accent hover:bg-accent-hover text-ink font-medium rounded-8 transition-colors"
+              >
+                Analyze
+              </button>
+            </div>
+
+            {showError && (
+              <div className="bg-surface-1 border border-hairline rounded-12 p-24 space-y-16">
+                <p className="text-body text-ink-muted">
+                  Live demo runs on a pre-engineered scenario. The full pipeline runs on any repo with INCIDENTS.md + mutmut via the CLI.
+                </p>
+                <div className="flex items-center gap-12">
+                  <span className="text-body text-ink-subtle">Try the demo PR:</span>
+                  <button
+                    onClick={loadDemoUrl}
+                    className="px-16 py-8 bg-accent hover:bg-accent-hover text-ink text-body rounded-6 transition-colors"
+                  >
+                    Load demo
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Analyzing State */}
+        {/* Simulation */}
         {isAnalyzing && (
-          <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-8">
-            <ConfidenceMeter />
-          </div>
+          <LayerSimulation onComplete={handleSimulationComplete} />
         )}
 
         {/* Results */}
         {showResults && (
-          <div className="space-y-6">
+          <div className="space-y-32">
             {/* Verdict Banner */}
             <VerdictBanner verdict={ANALYSIS_DATA.verdict} />
 
-            {/* TL;DR with Killer Line */}
-            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-8 space-y-4">
-              <h2 className="text-2xl font-bold text-slate-100">TL;DR</h2>
-              <KillerLineCallout text={ANALYSIS_DATA.killerLine} />
-              <p className="text-slate-300 leading-relaxed">
+            {/* Killer Line Callout */}
+            <KillerLineCallout text={ANALYSIS_DATA.killerLine} />
+
+            {/* TL;DR */}
+            <div className="bg-surface-1 border border-hairline rounded-12 p-32 space-y-16">
+              <h2 className="text-headline text-ink">TL;DR</h2>
+              <p className="text-body text-ink-muted leading-relaxed">
                 {ANALYSIS_DATA.tldr}
               </p>
             </div>
 
             {/* Analysis Sections */}
             {ANALYSIS_DATA.sections.map((section, idx) => (
-              <div key={idx} className="bg-slate-900/50 border border-slate-800 rounded-lg p-8 space-y-4">
-                <h2 className="text-xl font-bold text-slate-100">{section.title}</h2>
-                <div className="space-y-2 text-slate-300">
+              <div key={idx} className="bg-surface-1 border border-hairline rounded-12 p-32 space-y-16">
+                <h2 className="text-headline text-ink">{section.title}</h2>
+                <div className="space-y-8 text-body text-ink-muted">
                   {section.content.map((line, lineIdx) => (
-                    <p key={lineIdx} className={line.startsWith("•") ? "ml-4" : ""}>
+                    <p key={lineIdx} className={line.startsWith("•") ? "ml-16" : ""}>
                       {line}
                     </p>
                   ))}
@@ -151,16 +181,16 @@ export default function AnalyzePage() {
               </div>
             ))}
 
-            {/* Analyze Another Button */}
-            <div className="text-center pt-8">
+            {/* Analyze Another */}
+            <div className="pt-32 border-t border-hairline">
               <button
                 onClick={() => {
                   setShowResults(false);
                   setIsAnalyzing(false);
                 }}
-                className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-lg transition-colors"
+                className="px-24 py-12 bg-surface-1 hover:bg-surface-2 border border-hairline text-ink rounded-8 transition-colors"
               >
-                Analyze Another PR
+                Analyze another PR
               </button>
             </div>
           </div>

@@ -3,21 +3,21 @@ type VerdictType = "DO NOT MERGE" | "REVIEW REQUIRED" | "LOOKS GOOD";
 const verdictConfig = {
   "DO NOT MERGE": {
     emoji: "🔴",
-    bgColor: "bg-red-950/50",
-    borderColor: "border-red-600",
-    textColor: "text-red-100",
+    bgColor: "bg-signal-danger/10",
+    borderColor: "border-signal-danger",
+    textColor: "text-signal-danger",
   },
   "REVIEW REQUIRED": {
     emoji: "⚠️",
-    bgColor: "bg-yellow-950/50",
-    borderColor: "border-yellow-600",
-    textColor: "text-yellow-100",
+    bgColor: "bg-signal-warning/10",
+    borderColor: "border-signal-warning",
+    textColor: "text-signal-warning",
   },
   "LOOKS GOOD": {
     emoji: "✅",
-    bgColor: "bg-green-950/50",
-    borderColor: "border-green-600",
-    textColor: "text-green-100",
+    bgColor: "bg-signal-success/10",
+    borderColor: "border-signal-success",
+    textColor: "text-signal-success",
   },
 };
 
@@ -25,14 +25,14 @@ export default function VerdictBanner({ verdict }: { verdict: VerdictType }) {
   const config = verdictConfig[verdict];
   
   return (
-    <div className={`p-6 ${config.bgColor} border-2 ${config.borderColor} rounded-lg mb-8`}>
-      <div className="flex items-center gap-4">
-        <div className="text-4xl">{config.emoji}</div>
+    <div className={`${config.bgColor} border ${config.borderColor} rounded-12 p-24`}>
+      <div className="flex items-center gap-16">
+        <div className="text-[32px]">{config.emoji}</div>
         <div>
-          <div className="text-sm text-slate-400 uppercase tracking-wider font-semibold">
+          <div className="text-caption uppercase text-ink-subtle">
             Verdict
           </div>
-          <div className={`text-2xl font-bold ${config.textColor}`}>
+          <div className={`text-headline ${config.textColor}`}>
             {verdict}
           </div>
         </div>
